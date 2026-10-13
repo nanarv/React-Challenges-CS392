@@ -1,0 +1,15 @@
+const ClassCard = ({ product }: ProductCardProps) => (
+  <div className="flex flex-col items-center h-108 w-64 p-2 border-2 border-gray-400 rounded-lg">
+    <div className="font-black text-xl">
+      { product.name }
+    </div>
+    <img className="h-48 w-48 my-4 object-contain" 
+         src={ product.imageUrl }>
+    <div className="flex-grow">
+      { product.description}
+    </div>
+    <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+      Add to cart
+   </button>
+  </div>
+);
