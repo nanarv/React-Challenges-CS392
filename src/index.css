@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  /* Palette: Turquoise Green, Vandyke Red, Spinel Red */
+  --color-mint: #a9d7c3;
+  --color-mint-50: #f3f9f6;
+  --color-mint-100: #e3f2eb;
+  --color-vandyke: #5c1f18;
+  --color-spinel: #d96078;
+
+  --shadow-raised: 0 1px 2px rgb(92 31 24 / 0.06), 0 10px 24px -8px rgb(92 31 24 / 0.16);
+  --shadow-lifted: 0 2px 4px rgb(92 31 24 / 0.06), 0 18px 36px -10px rgb(92 31 24 / 0.22);
+  --shadow-pressed: inset 0 2px 6px rgb(92 31 24 / 0.14);
+}
+
+body {
+  @apply bg-mint-50 text-vandyke;
+}

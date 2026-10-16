@@ -6,17 +6,18 @@ interface TermSelectorProps {
 }
 
 const TermSelector = ({ selected, setSelected }: TermSelectorProps) => (
-  <div className="flex gap-2 mb-8" role="group" aria-label="Select term">
+  <div className="inline-flex gap-1 mb-10 p-1 rounded-full bg-white shadow-raised" role="group" aria-label="Select term">
     {terms.map(term => (
       <button
         key={term}
         type="button"
         aria-pressed={term === selected}
         onClick={() => setSelected(term)}
-        className={`px-4 py-2 rounded-lg text-sm font-medium ring-1 transition-colors ${
+        className={`px-5 py-2 rounded-full text-sm font-semibold cursor-pointer transition-colors
+                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spinel ${
           term === selected
-            ? 'bg-stone-900 text-white ring-stone-900'
-            : 'bg-white text-stone-700 ring-stone-200 hover:bg-stone-100'
+            ? 'bg-vandyke text-white'
+            : 'text-vandyke/60 hover:text-vandyke hover:bg-mint-100'
         }`}
       >
         {term}
