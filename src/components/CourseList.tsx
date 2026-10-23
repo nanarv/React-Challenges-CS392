@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { Course, Term } from '../types';
+import Modal from './Modal';
+import { terms, type Course, type Term } from '../types';
 
 const toggleList = <T,>(x: T, lst: T[]): T[] => (
   lst.includes(x) ? lst.filter(y => y !== x) : [...lst, x]
@@ -89,6 +90,56 @@ const Cart = ({ courses, selected, onRemove }: CartProps) => (
   </section>
 );
 
+interface CoursePlanModalProps {
+  courses: Record<string, Course>;
+  selected: string[];
+  isOpen: boolean;
+  onClose: () => void;
+  onRemove: (id: string) => void;
+}
+
+const CoursePlanModal = ({ courses, selected, isOpen, onClose, onRemove }: CoursePlanModalProps) => (
+  <Modal isOpen={isOpen} onClose={onClose} title="Course plan">
+    {selected.length === 0 ? (
+      <p className="mt-4 text-sm text-vandyke/60">
+        No courses selected yet. Pick a term above, then click a course card to add it to your plan.
+      </p>
+    ) : (
+      <div className="mt-4 max-h-[60vh] overflow-auto">
+        {terms.map(term => {
+          const termIds = selected.filter(id => courses[id].term === term);
+          if (termIds.length === 0) return null;
+          return (
+            <section key={term} className="mt-4 first:mt-0">
+              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-vandyke/50">{term}</h3>
+              <ul className="mt-1 divide-y divide-mint-100">
+                {termIds.map(id => (
+                  <li key={`plan-${id}`} className="flex items-center justify-between gap-4 py-3 text-sm">
+                    <span>
+                      <span className="font-semibold">CS {courses[id].number}</span>
+                      <span className="text-vandyke/60"> · {courses[id].title}</span>
+                      <span className="mt-1 block text-vandyke/60">{courses[id].meets}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onRemove(id)}
+                      className="shrink-0 rounded-full px-3 py-1 text-xs font-medium text-vandyke/60 cursor-pointer
+                                 transition-colors hover:bg-spinel/10 hover:text-spinel
+                                 focus-visible:outline-2 focus-visible:outline-spinel"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
+      </div>
+    )}
+  </Modal>
+);
+
 interface CourseListProps {
   courses: Record<string, Course>;
   selectedTerm: Term;
@@ -96,6 +147,7 @@ interface CourseListProps {
 
 const CourseList = ({ courses, selectedTerm }: CourseListProps) => {
   const [selected, setSelected] = useState<string[]>([]);
+  const [planOpen, setPlanOpen] = useState(false);
 
   const toggleSelected = (id: string) => {
     setSelected(selected => toggleList(id, selected));
@@ -105,6 +157,22 @@ const CourseList = ({ courses, selectedTerm }: CourseListProps) => {
 
   return (
     <>
+      <button
+        type="button"
+        onClick={() => setPlanOpen(true)}
+        className="mb-6 rounded-full bg-spinel px-5 py-2 text-sm font-semibold text-white cursor-pointer
+                   transition-opacity hover:opacity-90
+                   focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spinel"
+      >
+        Course plan ({selected.length})
+      </button>
+      <CoursePlanModal
+        courses={courses}
+        selected={selected}
+        isOpen={planOpen}
+        onClose={() => setPlanOpen(false)}
+        onRemove={toggleSelected}
+      />
       <Cart courses={courses} selected={selected} onRemove={toggleSelected} />
       {termCourses.length === 0 ? (
         <p className="text-vandyke/60">No courses offered this term.</p>

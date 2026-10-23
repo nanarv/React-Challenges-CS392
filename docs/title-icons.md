@@ -1,0 +1,1 @@
+Change the title and favicon in the React website to be our own icon. Do it on the CS392 Project website. Use the title “CS392 Challenges” and the favicon according to this path: public/favicon.svg. This is the only task; don’t do anything else.

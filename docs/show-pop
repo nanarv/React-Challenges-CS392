@@ -1,0 +1,15 @@
+▎ In my React + TypeScript + Tailwind app, add a "Course plan" pop-up to src/components/CourseList.tsx, where the selected courses are already tracked.
+▎
+▎ Behavior
+▎ - A "Course plan" button opens the pop-up.
+▎ - The pop-up lists each chosen course's number, title and meeting time.
+▎ - If no courses are chosen, it shows a short message explaining how to pick them.
+▎ - It closes on: the ✕ button, a click outside the box, or the Escape key.
+▎ - Clicking inside the box does not close it.
+▎
+▎ Constraints
+▎ - Put the pop-up frame in a reusable src/components/Modal.tsx, with the course content passed in.
+▎ - Match the existing look (colors vandyke, spinel, mint; rounded cards; shadows).
+▎ - Make it accessible: screen readers announce it as a dialog, the close button has a label, and keyboard focus moves into the pop-up and back to the button afterwards.
+▎
+▎ Keep it simple enough for a class assignment. Explain the key parts in plain words when you're done.
