@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import Modal from './Modal';
 import { terms, type Course, type Term } from '../types';
+import { findBlockedIds } from '../utilities/timeConflicts';
 
 const toggleList = <T,>(x: T, lst: T[]): T[] => (
   lst.includes(x) ? lst.filter(y => y !== x) : [...lst, x]
@@ -9,27 +11,40 @@ const toggleList = <T,>(x: T, lst: T[]): T[] => (
 interface CourseCardProps {
   course: Course;
   isSelected: boolean;
+  isBlocked: boolean;
   onToggle: () => void;
 }
 
-const CourseCard = ({ course, isSelected, onToggle }: CourseCardProps) => (
+const cardStateClasses = (isSelected: boolean, isBlocked: boolean) => {
+  if (isSelected) return 'translate-y-0.5 bg-mint-100 shadow-pressed cursor-pointer';
+  if (isBlocked) return 'bg-white shadow-raised opacity-45 cursor-not-allowed';
+  return `bg-white shadow-raised cursor-pointer hover:-translate-y-0.5 hover:shadow-lifted
+          active:translate-y-0.5 active:shadow-pressed`;
+};
+
+const badgeClasses = (isSelected: boolean, isBlocked: boolean) => {
+  if (isSelected) return 'bg-spinel';
+  if (isBlocked) return 'bg-vandyke/10';
+  return 'ring-1 ring-vandyke/20 group-hover:ring-spinel/60';
+};
+
+const CourseCard = ({ course, isSelected, isBlocked, onToggle }: CourseCardProps) => (
   <button
     type="button"
     aria-pressed={isSelected}
-    onClick={onToggle}
-    className={`group relative flex flex-col h-full w-full p-6 text-left rounded-2xl cursor-pointer
+    aria-disabled={isBlocked}
+    title={isBlocked ? 'Time conflict with a selected course' : undefined}
+    onClick={isBlocked ? undefined : onToggle}
+    className={`group relative flex flex-col h-full w-full p-6 text-left rounded-2xl
                 transition-all duration-150 ease-out
-                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spinel
-                active:translate-y-0.5 active:shadow-pressed ${
-                  isSelected
-                    ? 'translate-y-0.5 bg-mint-100 shadow-pressed'
-                    : 'bg-white shadow-raised hover:-translate-y-0.5 hover:shadow-lifted'
+                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-spinel ${
+                  cardStateClasses(isSelected, isBlocked)
                 }`}
   >
     <span
       aria-hidden="true"
       className={`absolute top-5 right-5 flex size-5 items-center justify-center rounded-full transition-colors ${
-        isSelected ? 'bg-spinel' : 'ring-1 ring-vandyke/20 group-hover:ring-spinel/60'
+        badgeClasses(isSelected, isBlocked)
       }`}
     >
       {isSelected && (
@@ -37,7 +52,13 @@ const CourseCard = ({ course, isSelected, onToggle }: CourseCardProps) => (
           <path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
+      {isBlocked && (
+        <svg viewBox="0 0 12 12" className="size-2.5 text-vandyke" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M3 3l6 6M9 3l-6 6" strokeLinecap="round" />
+        </svg>
+      )}
     </span>
+    {isBlocked && <span className="sr-only">Time conflict with a selected course.</span>}
     <span className="pr-8 text-xs font-semibold uppercase tracking-[0.16em] text-vandyke/50">
       {course.term} · CS {course.number}
     </span>
@@ -154,6 +175,7 @@ const CourseList = ({ courses, selectedTerm }: CourseListProps) => {
   };
 
   const termCourses = Object.entries(courses).filter(([, course]) => course.term === selectedTerm);
+  const blockedIds = findBlockedIds(courses, selected);
 
   return (
     <>
@@ -179,7 +201,22 @@ const CourseList = ({ courses, selectedTerm }: CourseListProps) => {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-6">
           {termCourses.map(([id, course]) => (
-            <CourseCard key={id} course={course} isSelected={selected.includes(id)} onToggle={() => toggleSelected(id)} />
+            <div key={id} className="flex flex-col gap-2">
+              <CourseCard
+                course={course}
+                isSelected={selected.includes(id)}
+                isBlocked={blockedIds.has(id)}
+                onToggle={() => toggleSelected(id)}
+              />
+              <Link
+                to="/course/$id/edit"
+                params={{ id }}
+                resetScroll={false}
+                className="self-start text-sm font-medium text-spinel hover:underline"
+              >
+                Edit
+              </Link>
+            </div>
           ))}
         </div>
       )}
