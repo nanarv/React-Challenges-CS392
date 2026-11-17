@@ -1,17 +1,9 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { z } from 'zod';
 import TermPage from '../components/TermPage';
-import { ScheduleSchema, type Schedule } from '../types';
-
-const SCHEDULE_URL = 'https://courses.cs.northwestern.edu/394/guides/data/cs-courses.php';
-
-const fetchSchedule = async (): Promise<Schedule> => {
-  const response = await fetch(SCHEDULE_URL);
-  if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-  const result = ScheduleSchema.safeParse(await response.json());
-  if (!result.success) throw new Error(`Bad schedule data:\n${z.prettifyError(result.error)}`);
-  return result.data;
-};
+import { ScheduleSchema } from '../types';
+import { useDataQuery } from '../utilities/firebase';
+import { ScheduleContext } from '../utilities/schedule';
 
 const Banner = ({ title }: { title: string }) => (
   <header className="mb-10">
@@ -26,21 +18,36 @@ const Shell = ({ children }: { children: React.ReactNode }) => (
   </main>
 );
 
+const ErrorMessage = ({ message }: { message: string }) => (
+  <Shell><p className="whitespace-pre-line text-spinel">Error loading course schedule: {message}</p></Shell>
+);
+
 const CoursesLayout = () => {
-  const { title, courses } = Route.useLoaderData();
+  const [json, isLoading, error] = useDataQuery('/');
+
+  if (error) return <ErrorMessage message={error.message} />;
+  if (isLoading) return <Shell><p className="text-vandyke/60">Loading course schedule...</p></Shell>;
+  if (!json) return <ErrorMessage message="No data found" />;
+
+  const result = ScheduleSchema.safeParse(json);
+  if (!result.success) {
+    console.log(result.error);
+    return <ErrorMessage message={`Bad schedule data:\n${z.prettifyError(result.error)}`} />;
+  }
+
+  const schedule = result.data;
+
   return (
-    <Shell>
-      <Banner title={title} />
-      <TermPage courses={courses} />
-      <Outlet />
-    </Shell>
+    <ScheduleContext.Provider value={schedule}>
+      <Shell>
+        <Banner title={schedule.title} />
+        <TermPage courses={schedule.courses} />
+        <Outlet />
+      </Shell>
+    </ScheduleContext.Provider>
   );
 };
 
 export const Route = createFileRoute('/_courses')({
-  loader: () => fetchSchedule(),
-  staleTime: Infinity,
   component: CoursesLayout,
-  pendingComponent: () => <Shell><p className="text-vandyke/60">Loading course schedule...</p></Shell>,
-  errorComponent: ({ error }) => <Shell><p className="whitespace-pre-line text-spinel">Error loading course schedule: {error instanceof Error ? error.message : String(error)}</p></Shell>,
 });
